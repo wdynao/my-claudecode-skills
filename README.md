@@ -2,21 +2,19 @@
 
 Claude Code で使えるお気に入りスキルセット集。テンプレートとして使えます。
 
+## 導入済みスキル
+
+| スキル | 依存 | 説明 |
+|--------|------|------|
+| [playwright-cli](.claude/skills/playwright-cli/) | Node.js | AI エージェント向けブラウザ操作 CLI |
+| [x-research](.claude/skills/x-research/) | Node.js 18+ | X (Twitter) ツイート検索・リサーチ |
+
 ## セットアップ
 
-```bash
-# playwright-cli
-npm install -g @playwright/cli@latest
-playwright-cli install-browser
-playwright-cli install --skills
+### x-research
 
-# x-research (依存: Node.js 18+)
-# ~/.claude/settings.json に X_BEARER_TOKEN を設定すること
-```
-
-### 環境変数の設定
-
-`~/.claude/settings.json` にトークンを追加する:
+1. [X Developer Portal](https://developer.x.com/en/portal/dashboard) で Bearer Token を取得
+2. `<USER>/.claude/settings.json` にトークンを追加:
 
 ```json
 {
@@ -26,12 +24,7 @@ playwright-cli install --skills
 }
 ```
 
-## 導入済みスキル
-
-| スキル | 導入方法 | 依存 | 説明 |
-|--------|----------|------|------|
-| [playwright-cli](.claude/skills/playwright-cli/) | `playwright-cli install --skills` | Node.js | AI エージェント向けブラウザ操作 CLI |
-| [x-research](.claude/skills/x-research/) | 同梱 | Node.js 18+ | X (Twitter) ツイート検索・リサーチ |
+> `<USER>/.claude/settings.json` の `env` に設定した値は、全プロジェクトの Claude Code セッションで環境変数として使える。
 
 ## スキルの追加方法
 

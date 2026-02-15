@@ -9,6 +9,7 @@ Claude Code で使えるお気に入りスキルセット集。テンプレー�
 | [playwright-cli](.claude/skills/playwright-cli/) | Node.js | AI エージェント向けブラウザ操作 CLI |
 | [x-research](.claude/skills/x-research/) | Node.js 18+ | X (Twitter) ツイート検索・リサーチ |
 | [obsidian-vault](.claude/skills/obsidian-vault/) | なし | 会話の洞察を Zettelkasten ノートとして Vault に保存 |
+| [notebooklm](.claude/skills/notebooklm/) | なし | NotebookLM での調査依頼パッケージを生成（YouTube、音声、大量PDF、Fast Research 等） |
 
 ## セットアップ
 

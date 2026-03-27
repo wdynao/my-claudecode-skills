@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git branch*)",
+      "Bash(tsx *)",
+      "Bash(pwd)",
+      "Bash(date)",
+      "Bash(which *)",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "deny": [
+      "Read(.env*)",
+      "Read(*.vars)",
+      "Edit(.env*)",
+      "Edit(*.vars)",
+      "Bash(env)",
+      "Bash(env *)",
+      "Bash(printenv)",
+      "Bash(printenv *)",
+      "Bash(echo *)",
+      "Bash(export)",
+      "Bash(export *)",
+      "Bash(declare)",
+      "Bash(declare *)",
+      "Bash(compgen *)",
+      "Bash(*.env*)",
+      "Bash(*.vars*)",
+      "Edit(.claude/settings.json)",
+      "Edit(.claude/settings.local.json)",
+      "Edit(~/.claude/settings.json)"
+    ]
+  },
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}

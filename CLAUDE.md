@@ -218,20 +218,10 @@ Do not produce verbose output that hides missing thinking.
 When research is relevant:
 
 - search for existing solutions before proposing custom implementation
-- compare multiple plausible options when possible
-- explain why each option is or is not a fit here
-- cite the concrete sources used
-- include when the source was checked if freshness matters
-- distinguish facts from inference clearly
-- call out maturity, integration cost, dependency risk, and reversibility
-- state what remains unknown
-- treat custom implementation as a justified choice, not a default impulse
-
-Research is not complete if it only contains:
-- tool names without sources
-- memory-based comparisons presented as fact
-- a single favored option without showing the space
-- vague best-practice claims without support
+- compare realistic options before recommending a path
+- cite concrete sources for material claims
+- distinguish facts, inference, and unknowns clearly
+- treat custom implementation as a justified exception, not the default
 
 If recommending custom implementation, explicitly explain:
 - why existing options are insufficient
@@ -248,10 +238,8 @@ Before execution, define:
 - problem
 - goal
 - deliverable
-- audience or user when relevant
 - success criteria
-- in-scope items
-- out-of-scope items
+- scope and non-scope
 - constraints
 - assumptions
 - important unknowns
@@ -265,11 +253,9 @@ Do not rely on downstream agents to fill critical requirement gaps by instinct.
 When architecture is needed:
 
 - define clear responsibilities
-- define boundaries explicitly
-- define interfaces where relevant
+- define boundaries and interfaces explicitly when relevant
 - avoid speculative abstraction
 - fit the design to the current repo reality
-- preserve maintainability without bloating the structure
 - prefer the minimum sound design for the task
 
 Architecture should reduce confusion, not create ceremony.
@@ -299,9 +285,8 @@ Verification should be explicit.
 For any meaningful task, define:
 - what must be true before completion
 - what evidence is required
-- what commands should run
-- what outputs should be inspected
-- what edge cases matter
+- what commands or checks should run
+- what outputs or behaviors should be inspected
 - what remains unverified
 
 Use these meanings consistently:
@@ -321,8 +306,8 @@ Do not mark:
 - unreproduced bug fixes as fixed
 - unsupported claims as verified
 
-Verification should prefer repo-real commands and observable artifacts over generic statements.
-If the repo does not define commands yet, the missing command set is itself a verification gap.
+Prefer repo-real commands and observable artifacts over generic statements.
+If the repo does not define commands yet, that missing command set is itself a verification gap.
 
 ---
 
@@ -354,7 +339,7 @@ When product judgment matters, clarify:
 - what value is created
 - what belongs in MVP
 - what should be deferred
-- what tradeoffs exist between speed, completeness, learning, and scale
+- what tradeoffs matter most now
 
 Do not treat every requested feature as equally important.
 Do not expand scope just because additional ideas sound useful.

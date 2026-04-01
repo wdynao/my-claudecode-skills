@@ -43,6 +43,6 @@ model: opus
 |---|-------|--------|------|
 | 1 | architect | 🔄 実行 | DB設計の策定 |
 | 2 | researcher | ✅ 完了 | 競合調査 |
-| 2 | researcher | ❌ 失敗 | ライブラリ比較 |
-| 3 | engineer | ⏳ 待機 | API実装 |
+| 3 | researcher | ❌ 失敗 | ライブラリ比較 |
+| 4 | engineer | ⏳ 待機 | API実装 |
 ````

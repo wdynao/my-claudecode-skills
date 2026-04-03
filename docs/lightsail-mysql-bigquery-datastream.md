@@ -4,37 +4,28 @@
 
 ---
 
-# **0. 最初に確認すること: Lightsail MySQL の種別判定**
+# **1. Lightsail MySQL の種別と Datastream 対応状況**
 
-手順に入る前に、使用しているLightsail MySQLの種別を特定する必要がある。種別によって設定手順が異なる。
+Lightsail 上の MySQL には2つの構成パターンがある。Datastream CDC の実現可否が異なるため、最初に種別を特定すること。
 
-| 種別 | 特徴 | 確認方法 |
+| 種別 | 概要 | binlog設定 | Datastream対応 |
+| :---- | :---- | :---- | :---- |
+| マネージドDB | Lightsailコンソールの「データベース」から作成。フルマネージド型でSSHアクセス不可 | △ 変更制限あり（要確認） | △ binlog設定次第 |
+| セルフホスト | Lightsailインスタンス（Linux VPS）にMySQLをインストール。SSH接続可能 | ○ my.cnf を直接編集可能 | ○ |
+
+## **種別の確認方法**
+
+| 確認手順 | マネージドDB | セルフホスト |
 | :---- | :---- | :---- |
-| マネージドDB | Lightsailコンソールの「データベース」から作成。SSHアクセス不可 | Lightsailコンソール → 「データベース」タブに表示される |
-| セルフホスト | Lightsailインスタンス（Linux VPS）にMySQL/MariaDBをインストール。SSH接続可能 | Lightsailコンソール → 「インスタンス」タブに表示される。SSH接続で `mysql --version` が実行できる |
+| Lightsailコンソールの表示場所 | 「データベース」タブ | 「インスタンス」タブ |
+| SSH接続 | 不可 | 可能 |
+| `mysql --version` の実行 | 不可（管理者に確認） | SSH接続後に実行可能 |
+
+| ⚠ 重要 **マネージドDB** は `binlog_format=ROW` が設定できない可能性がある。この設定は Datastream CDC の必須要件であるため、管理者への事前確認が必要。設定不可の場合は CDC 連携を実現できない。**セルフホスト** は my.cnf を直接編集できるため制約なし。 |
+| :---- |
 
 **→ マネージドDB の場合**: セクション2A の手順に従う
-**→ セルフホスト の場合**: セクション2B の手順に従う（こちらの方がシンプル）
-
----
-
-# **1. DatastreamのLightsail MySQLサポート状況**
-
-Datastream は以下のMySQLソースを公式サポートしている。Lightsail マネージドDB は「Self-managed MySQL」カテゴリに分類される想定。
-
-| ソース | サポート | 備考 |
-| :---- | :---- | :---- |
-| Self-hosted MySQL | ○ |  |
-| Cloud SQL for MySQL | ○ |  |
-| Amazon RDS for MySQL | ○ |  |
-| Amazon Aurora MySQL | ○ |  |
-| Amazon Lightsail マネージドDB | △ | Self-managed MySQL として接続想定。binlog設定可否の確認が必要 |
-| Lightsail セルフホスト MySQL | ○ | Self-hosted MySQL として接続。binlog設定の制約なし |
-| MariaDB | ○ | MySQLコネクタ経由 |
-| Percona Server | ○ | MySQLコネクタ経由 |
-
-| ⚠ 重要な注意 **マネージドDB の場合**: `binlog_format=ROW` が設定できない可能性がある。事前にDB管理者への確認が必要。**セルフホストの場合**: my.cnf を直接編集できるため、binlog設定に制約はない。 |
-| :---- |
+**→ セルフホスト の場合**: セクション2B の手順に従う
 
 ---
 

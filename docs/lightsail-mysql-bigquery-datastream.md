@@ -8,8 +8,23 @@
 
 | 種別 | Datastream対応 |
 | :---- | :---- |
-| Amazon Lightsail マネージドDB | △ `binlog_format=ROW` の設定可否を管理者に要確認 |
+| Amazon Lightsail マネージドDB | △ 下記の事前確認が必要 |
 | Amazon Lightsail セルフホスト MySQL | ○ |
+
+### マネージドDB の制約
+
+- `SET GLOBAL binlog_format = 'ROW'` は**実行不可**（SUPER権限がマスターユーザーに付与されていない）
+- パラメータ変更API (`update-relational-database-parameters`) 経由での変更は可能性があるが、`binlog_format` が変更可能かどうかの公式ドキュメントは存在しない
+- MySQL 8.0.34以降はデフォルトで `binlog_format=ROW` のため、**バージョン次第では変更不要の可能性がある**
+
+以下のコマンドで確定できる:
+
+```bash
+# binlog_format が変更可能か確認（isModifiable フラグを見る）
+aws lightsail get-relational-database-parameters \
+  --relational-database-name <DB名> \
+  --query "relationalDatabaseParameters[?parameterName=='binlog_format']"
+```
 
 **→ マネージドDB の場合**: セクション2A へ
 **→ セルフホスト の場合**: セクション2B へ
@@ -17,13 +32,6 @@
 ---
 
 # **2A. マネージドDBの設定（管理者への依頼事項）**
-
-## **管理者への確認チェックリスト**
-
-- [ ] `binlog_format` の現在値と `ROW` への変更可否
-- [ ] パブリックアクセス（Public mode）の有効化可否
-- [ ] Datastream接続用MySQLユーザーの作成可否
-- [ ] MySQLバージョン（5.7 / 8.0）
 
 ## **binlogパラメータ**
 
@@ -48,7 +56,7 @@ aws lightsail update-relational-database-parameters \
 CALL mysql.rds_set_configuration('binlog retention hours', 168);
 ```
 
-※ このプロシージャが使用不可の場合は管理者に保持期間設定を依頼
+※ RDS専用プロシージャのため Lightsail では実行不可の可能性あり
 
 ## **Datastream用ユーザー作成**
 

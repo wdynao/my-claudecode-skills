@@ -4,6 +4,20 @@
 
 ---
 
+# **0. 最初に確認すること: Lightsail MySQL の種別判定**
+
+手順に入る前に、使用しているLightsail MySQLの種別を特定する必要がある。種別によって設定手順が異なる。
+
+| 種別 | 特徴 | 確認方法 |
+| :---- | :---- | :---- |
+| マネージドDB | Lightsailコンソールの「データベース」から作成。SSHアクセス不可 | Lightsailコンソール → 「データベース」タブに表示される |
+| セルフホスト | Lightsailインスタンス（Linux VPS）にMySQL/MariaDBをインストール。SSH接続可能 | Lightsailコンソール → 「インスタンス」タブに表示される。SSH接続で `mysql --version` が実行できる |
+
+**→ マネージドDB の場合**: セクション2A の手順に従う
+**→ セルフホスト の場合**: セクション2B の手順に従う（こちらの方がシンプル）
+
+---
+
 # **1. DatastreamのLightsail MySQLサポート状況**
 
 Datastream は以下のMySQLソースを公式サポートしている。Lightsail マネージドDB は「Self-managed MySQL」カテゴリに分類される想定。
@@ -15,15 +29,16 @@ Datastream は以下のMySQLソースを公式サポートしている。Lightsa
 | Amazon RDS for MySQL | ○ |  |
 | Amazon Aurora MySQL | ○ |  |
 | Amazon Lightsail マネージドDB | △ | Self-managed MySQL として接続想定。binlog設定可否の確認が必要 |
+| Lightsail セルフホスト MySQL | ○ | Self-hosted MySQL として接続。binlog設定の制約なし |
 | MariaDB | ○ | MySQLコネクタ経由 |
 | Percona Server | ○ | MySQLコネクタ経由 |
 
-| ⚠ 重要な注意 Lightsail マネージドDB では `binlog_format=ROW` が設定できない可能性がある。Datastream CDC を利用するにはこの設定が必須であるため、事前にDB管理者への確認が必要。設定不可の場合はバッチ連携（Embulk、Dataflow等）を検討すること。 |
+| ⚠ 重要な注意 **マネージドDB の場合**: `binlog_format=ROW` が設定できない可能性がある。事前にDB管理者への確認が必要。**セルフホストの場合**: my.cnf を直接編集できるため、binlog設定に制約はない。 |
 | :---- |
 
 ---
 
-# **2. Lightsail MySQLの設定（管理者への依頼事項）**
+# **2A. マネージドDBの設定（管理者への依頼事項）**
 
 ## **2.1 事前確認事項**
 
@@ -86,6 +101,61 @@ GRANT EXECUTE ON PROCEDURE mysql.rds_show_configuration TO 'datastream'@'%';
 
 FLUSH PRIVILEGES;
 ```
+
+---
+
+# **2B. セルフホストMySQLの設定**
+
+Lightsailインスタンス上にインストールされたMySQLの場合、SSH接続で直接設定を変更できる。
+
+## **2B.1 binlogパラメータ設定**
+
+SSHでインスタンスにログインし、MySQL設定ファイルを編集する。
+
+```bash
+sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf
+# または
+sudo vi /etc/my.cnf
+```
+
+以下を `[mysqld]` セクションに追加:
+
+```ini
+[mysqld]
+server_id = 1
+log_bin = mysql-bin
+binlog_format = ROW
+binlog_row_image = FULL
+binlog_expire_logs_seconds = 604800
+max_allowed_packet = 1G
+```
+
+設定変更後、MySQLを再起動:
+
+```bash
+sudo systemctl restart mysql
+```
+
+設定の確認:
+
+```sql
+SHOW GLOBAL VARIABLES LIKE 'binlog_format';
+SHOW GLOBAL VARIABLES LIKE 'binlog_row_image';
+SHOW GLOBAL VARIABLES LIKE 'log_bin';
+```
+
+## **2B.2 Datastream用ユーザー作成**
+
+```sql
+CREATE USER 'datastream'@'%' IDENTIFIED BY '<パスワード>';
+
+GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'datastream'@'%';
+GRANT SELECT ON *.* TO 'datastream'@'%';
+
+FLUSH PRIVILEGES;
+```
+
+※ セルフホストの場合、`mysql.rds_show_configuration` の権限付与は不要。
 
 ---
 
@@ -167,7 +237,7 @@ Datastream ---(SSH:22)---> 踏み台 ---(MySQL:3306)---> Lightsail MySQL
 
 # **5. 制限事項・注意点**
 
-## **Lightsail マネージドDB 固有の問題**
+## **Lightsail 固有の問題**
 
 | 制限・注意点 | 詳細 |
 | :---- | :---- |
@@ -175,6 +245,7 @@ Datastream ---(SSH:22)---> 踏み台 ---(MySQL:3306)---> Lightsail MySQL
 | パラメータ変更APIの制約 | 一部パラメータが読み取り専用で変更できない可能性がある |
 | パブリックモード有効化の時間 | 有効化・無効化に10〜15分かかる |
 | GTID非互換 | MySQLのGTIDは使用しない。binlogファイル＋ポジションベースで接続すること |
+| セルフホストの運用負荷 | セルフホストの場合、OS・MySQLのパッチ適用やセキュリティ管理はユーザー責任 |
 
 ## **Datastreamの一般的な制限**
 

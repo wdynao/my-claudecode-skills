@@ -18,35 +18,23 @@
 
 # **2A. マネージドDBの設定（管理者への依頼事項）**
 
-## **2.1 事前確認事項**
+## **管理者への確認チェックリスト**
 
-DB管理者に以下を確認・依頼すること。
-
-- [ ] `binlog_format` の現在値と、`ROW` への変更可否
+- [ ] `binlog_format` の現在値と `ROW` への変更可否
 - [ ] パブリックアクセス（Public mode）の有効化可否
 - [ ] Datastream接続用MySQLユーザーの作成可否
-- [ ] MySQLのバージョン（5.7 / 8.0 等）
-- [ ] 以下のコマンドでパラメータ一覧を取得し、変更可能なパラメータを確認してもらう
+- [ ] MySQLバージョン（5.7 / 8.0）
 
-```bash
-aws lightsail get-relational-database-parameters \
-  --relational-database-name <DB名>
-```
+## **binlogパラメータ**
 
-## **2.2 binlogパラメータ設定**
-
-Datastream CDC に必要なパラメータは以下のとおり。
-
-| パラメータ | 値 | 説明 |
-| :---- | :---- | :---- |
-| binlog_format | ROW | 必須。MIXED/STATEMENTは非対応 |
-| binlog_row_image | FULL | 全カラムの変更前後の値を記録 |
-| binlog_checksum | NONE | Datastream推奨設定 |
-| net_read_timeout | 3600 | 推奨値 |
-| net_write_timeout | 3600 | 推奨値 |
-| wait_timeout | 86400 | 推奨値 |
-
-Lightsail CLIでのパラメータ変更コマンド例:
+| パラメータ | 値 |
+| :---- | :---- |
+| binlog_format | ROW |
+| binlog_row_image | FULL |
+| binlog_checksum | NONE |
+| net_read_timeout | 3600 |
+| net_write_timeout | 3600 |
+| wait_timeout | 86400 |
 
 ```bash
 aws lightsail update-relational-database-parameters \
@@ -54,29 +42,21 @@ aws lightsail update-relational-database-parameters \
   --parameters "parameterName=binlog_format,parameterValue=ROW,applyMethod=pending-reboot"
 ```
 
-変更後はDBの再起動が必要（`pending-reboot` を指定した場合）。
-
-**binlog保持期間の設定:**
+**binlog保持期間:**
 
 ```sql
 CALL mysql.rds_set_configuration('binlog retention hours', 168);
 ```
 
-※ Lightsail マネージドDB でこのプロシージャが使用可能か要確認。使用できない場合はDB管理者に保持期間の設定を依頼すること。
+※ このプロシージャが使用不可の場合は管理者に保持期間設定を依頼
 
-## **2.3 Datastream用ユーザー作成**
-
-管理者に以下のSQLを実行してもらう。
+## **Datastream用ユーザー作成**
 
 ```sql
 CREATE USER 'datastream'@'%' IDENTIFIED BY '<パスワード>';
-
 GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'datastream'@'%';
 GRANT SELECT ON *.* TO 'datastream'@'%';
-
--- RDS互換DBのため、以下も付与
 GRANT EXECUTE ON PROCEDURE mysql.rds_show_configuration TO 'datastream'@'%';
-
 FLUSH PRIVILEGES;
 ```
 
@@ -84,19 +64,9 @@ FLUSH PRIVILEGES;
 
 # **2B. セルフホストMySQLの設定**
 
-Lightsailインスタンス上にインストールされたMySQLの場合、SSH接続で直接設定を変更できる。
+## **binlogパラメータ**
 
-## **2B.1 binlogパラメータ設定**
-
-SSHでインスタンスにログインし、MySQL設定ファイルを編集する。
-
-```bash
-sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf
-# または
-sudo vi /etc/my.cnf
-```
-
-以下を `[mysqld]` セクションに追加:
+`/etc/mysql/mysql.conf.d/mysqld.cnf` または `/etc/my.cnf` に追加:
 
 ```ini
 [mysqld]
@@ -108,142 +78,78 @@ binlog_expire_logs_seconds = 604800
 max_allowed_packet = 1G
 ```
 
-設定変更後、MySQLを再起動:
-
 ```bash
 sudo systemctl restart mysql
 ```
 
-設定の確認:
-
-```sql
-SHOW GLOBAL VARIABLES LIKE 'binlog_format';
-SHOW GLOBAL VARIABLES LIKE 'binlog_row_image';
-SHOW GLOBAL VARIABLES LIKE 'log_bin';
-```
-
-## **2B.2 Datastream用ユーザー作成**
+## **Datastream用ユーザー作成**
 
 ```sql
 CREATE USER 'datastream'@'%' IDENTIFIED BY '<パスワード>';
-
 GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'datastream'@'%';
 GRANT SELECT ON *.* TO 'datastream'@'%';
-
 FLUSH PRIVILEGES;
 ```
-
-※ セルフホストの場合、`mysql.rds_show_configuration` の権限付与は不要。
 
 ---
 
 # **3. ネットワーク接続**
 
-## **3.1 方式A: IPアローリスト（Public IP）**
+| | IPアローリスト | SSHトンネル（推奨） |
+| :---- | :---- | :---- |
+| 概要 | Lightsailパブリックモード有効化 + DatastreamのIP許可 | 踏み台サーバー経由で接続 |
+| 追加コスト | $0 | $3.50/月〜（踏み台） |
+| セキュリティ | △ DB公開が必要 | ○ DB非公開のまま |
+| 設定難易度 | 低 | 中 |
 
-Lightsail のパブリックモードを有効化し、DatastreamのIPをファイアウォールで許可する方式。
+## **方式A: IPアローリスト**
 
-**設定手順:**
+1. Lightsailで「パブリックモード」を有効化
+2. ファイアウォールでDatastreamのIP → ポート3306を許可
+3. SSL接続を設定
 
-1. Lightsail コンソール でDB の「パブリックモード」を有効化（10〜15分かかる）
-2. Lightsail ファイアウォールで以下を設定:
-   - プロトコル: TCP
-   - ポート: 3306
-   - 送信元: Datastreamの使用リージョンのIPレンジ（[IPアローリスト参照](#参考リンク)）
-3. DatastreamでSSL接続を設定（推奨）
-
-| 項目 | 内容 |
-| :---- | :---- |
-| 追加コスト | $0 |
-| セキュリティ | △（公開インターネット経由、SSL推奨） |
-| 設定難易度 | 低 |
-
-| ⚠ セキュリティ上の注意 DBがパブリックインターネットに露出するため、ファイアウォールルールのIP制限とSSL接続を必ず設定すること。パブリックモード有効化はDB管理者の承認が必要な場合がある。 |
-| :---- |
-
-## **3.2 方式B: SSHトンネル（推奨）**
-
-同一リージョンに踏み台サーバー（Lightsail インスタンス または EC2）を配置し、SSHトンネル経由で接続する方式。
-
-**構成図:**
+## **方式B: SSHトンネル**
 
 ```
 Datastream ---(SSH:22)---> 踏み台 ---(MySQL:3306)---> Lightsail MySQL
-  (GCP)                   (AWS)                        (AWS, Private推奨)
+  (GCP)                   (AWS)                        (AWS)
 ```
 
-**設定手順:**
-
-1. Lightsail または EC2 で踏み台インスタンスを起動（同一リージョン推奨）
-2. 踏み台の SSH 公開鍵を Datastream に登録
-3. 踏み台から Lightsail MySQL（ポート3306）への疎通を確認
-4. Datastream でSSHトンネル設定を行う際に踏み台のパブリックIPとSSH秘密鍵を指定
-
-| 項目 | 内容 |
-| :---- | :---- |
-| 追加コスト | 踏み台インスタンス代（Lightsail 最小構成 $3.50/月〜） |
-| セキュリティ | ○（DBをパブリックに公開しない） |
-| 設定難易度 | 中 |
+1. 踏み台インスタンスを起動（Lightsail MySQL と同一リージョン）
+2. 踏み台のSSH公開鍵をDatastreamに登録
+3. Datastreamで踏み台のパブリックIPとSSH秘密鍵を指定
 
 ---
 
 # **4. コスト**
 
-## **4.1 Datastream課金体系**
+課金対象の processed byte は**実データの2〜5倍**になる。
 
-処理データ量（GiB単位）の従量課金。**課金対象の「processed byte」は実データの2〜5倍**になる点に注意。アイドル状態のストリームには課金なし。
-
-| 月間処理量 | CDC単価 (USD/GiB) |
+| 月間処理量 | CDC単価 |
 | :---- | :---- |
-| 0〜2,500 GiB | $2.00 |
-| 2,500〜5,000 GiB | $1.50 |
-| 5,000〜10,000 GiB | $1.20 |
-| 10,000+ GiB | $0.80 |
+| 〜2,500 GiB | $2.00/GiB |
+| 2,500〜5,000 GiB | $1.50/GiB |
 
-**バックフィル（初期ロード）:** 月間500GiBまで無料、超過分$0.40/GiB
-
-## **4.2 概算コスト例（1GB/日の変更量）**
-
-| 項目 | 概算 |
-| :---- | :---- |
-| CDC費用 | $120〜300/月（60〜150 GiB × $2.00） |
-| 初回バックフィル（10GB DB） | $0（500GiB無料枠内） |
-| ネットワーク（SSHの場合） | $3.50〜15/月（踏み台インスタンス） |
-| 合計目安 | $125〜320/月（BQストレージ費用除く） |
+**バックフィル:** 月間500GiBまで無料、超過分 $0.40/GiB
 
 ---
 
-# **5. 制限事項・注意点**
+# **5. 制限事項**
 
-## **Lightsail 固有の問題**
-
-| 制限・注意点 | 詳細 |
+| 制限 | 影響 |
 | :---- | :---- |
-| binlog_format=ROW 設定不可の場合 | Datastream CDC は利用不可。代替案としてバッチ連携（Embulk、Dataflow等）を検討 |
-| パラメータ変更APIの制約 | 一部パラメータが読み取り専用で変更できない可能性がある |
-| パブリックモード有効化の時間 | 有効化・無効化に10〜15分かかる |
-| GTID非互換 | MySQLのGTIDは使用しない。binlogファイル＋ポジションベースで接続すること |
-| セルフホストの運用負荷 | セルフホストの場合、OS・MySQLのパッチ適用やセキュリティ管理はユーザー責任 |
-
-## **Datastreamの一般的な制限**
-
-| 制限・注意点 | 詳細 |
-| :---- | :---- |
-| 大規模テーブルのバックフィル | 500万行超のテーブルはユニークかつNOT NULLのインデックスが必要 |
-| DDL変更のサポート | ALTER TABLE 等の一部DDLはサポート外。スキーマ変更時は要確認 |
-| 課金データサイズ | 実データの2〜5倍が課金対象となる |
-| binlog期限切れリスク | ストリームを一時停止中にbinlogが保持期間を超えると再開不可になる。保持期間（推奨168時間）の設定を確認すること |
+| マネージドDBで `binlog_format=ROW` 設定不可の場合 | CDC連携不可。バッチ連携（Embulk等）を検討 |
+| GTIDは使用しない | binlogファイル＋ポジションベースで接続 |
+| 500万行超テーブルのバックフィル | ユニークかつNOT NULLのインデックスが必要 |
+| ストリーム一時停止中のbinlog期限切れ | 再開不可になる。保持期間168時間を推奨 |
 
 ---
 
 # **参考リンク**
 
-| ドキュメント | URL |
-| :---- | :---- |
-| Datastream MySQLソース設定 | cloud.google.com/datastream/docs/configure-your-source-mysql-database |
-| Self-managed MySQL CDC設定 | cloud.google.com/datastream/docs/configure-self-managed-mysql |
-| Lightsail DBパラメータ更新 | docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-updating-database-parameters.html |
-| Lightsail パブリックアクセス設定 | docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-configuring-database-public-mode.html |
-| SSHトンネル設定 | cloud.google.com/datastream/docs/ssh-tunnel |
-| Datastream料金 | cloud.google.com/datastream/pricing |
-| Datastream IPアローリスト | cloud.google.com/datastream/docs/ip-allowlists-and-regions |
+- Datastream MySQLソース設定: cloud.google.com/datastream/docs/configure-your-source-mysql-database
+- Self-managed MySQL CDC設定: cloud.google.com/datastream/docs/configure-self-managed-mysql
+- Lightsail DBパラメータ更新: docs.aws.amazon.com/lightsail/latest/userguide/amazon-lightsail-updating-database-parameters.html
+- SSHトンネル設定: cloud.google.com/datastream/docs/ssh-tunnel
+- Datastream IPアローリスト: cloud.google.com/datastream/docs/ip-allowlists-and-regions
+- Datastream料金: cloud.google.com/datastream/pricing

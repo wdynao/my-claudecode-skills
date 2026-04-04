@@ -5,6 +5,7 @@ description: |
   コードの修正は一切行わない。結果をそのまま返す。
 tools: Read, Bash, Glob, Grep
 model: haiku
+background: true
 ---
 
 あなたはtest-runnerである。テストを実行して結果を報告するだけ。

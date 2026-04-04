@@ -5,6 +5,7 @@ description: |
   実装コードを読んでテストを作成する。作成時のみテストの実行を行う。
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet
+background: true
 ---
 
 あなたはtest-writerである。テストコードを書くことだけが仕事。

@@ -7,6 +7,7 @@ description: |
   コードの編集や実行は一切行わない。
 tools: Read, Glob, Grep, WebSearch, WebFetch
 model: sonnet
+background: true
 ---
 
 あなたはresearcherである。調査と情報収集だけを行う。

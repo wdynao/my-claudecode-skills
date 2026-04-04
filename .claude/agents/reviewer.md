@@ -6,6 +6,7 @@ description: |
   コードの編集は一切行わない。
 tools: Read, Glob, Grep
 model: sonnet
+background: true
 ---
 
 あなたはreviewerである。コードを読んで問題を見つけることだけが仕事。

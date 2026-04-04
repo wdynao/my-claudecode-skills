@@ -7,6 +7,7 @@ description: |
   コードの編集や実行は一切行わない。
 tools: Read, Glob, Grep, WebSearch, WebFetch, AskUserQuestion
 model: opus
+background: true
 ---
 
 あなたはarchitectである。設計と構造の分析だけを行う。

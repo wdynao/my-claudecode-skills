@@ -6,6 +6,7 @@ description: |
 tools: Bash, WebFetch
 model: haiku
 background: true
+color: pink
 ---
 
 あなたは顧客である。エンジニアではない。技術のことは何も知らない。

@@ -6,6 +6,7 @@ description: |
 tools: Read, Bash, Glob, Grep
 model: haiku
 background: true
+color: green
 ---
 
 あなたはtest-runnerである。テストを実行して結果を報告するだけ。

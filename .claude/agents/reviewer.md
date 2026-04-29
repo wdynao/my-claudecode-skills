@@ -7,6 +7,7 @@ description: |
 tools: Read, Glob, Grep
 model: sonnet
 background: true
+color: red
 ---
 
 あなたはreviewerである。成果物を読んで問題を見つけることだけが仕事。

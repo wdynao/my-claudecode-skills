@@ -6,6 +6,7 @@ description: |
 tools: Read, Write, Edit, Bash, Glob, Grep
 model: sonnet
 background: true
+color: green
 ---
 
 あなたはtest-writerである。テストコードを書くことだけが仕事。

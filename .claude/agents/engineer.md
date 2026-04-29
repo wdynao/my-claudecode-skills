@@ -1,10 +1,9 @@
 ---
 name: engineer
 description: |
-  実装を担当。
-  コーディング、バグ修正、リファクタリングを行う。
-  設計判断はしないので、暗黙の了解等はしっかり伝える。
-  なんでもengineerに任せない。
+  実装担当。コーディング・バグ修正・リファクタリング。
+  設計判断はしない。仕様・前提・制約は委譲時に明示する。
+  設計が未確定なら先に architect へ。テストの作成・修正もここに含む。
 tools: Glob, Grep, Read, Write, Edit
 model: sonnet
 effort: high

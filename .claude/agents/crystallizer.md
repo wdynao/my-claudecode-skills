@@ -1,11 +1,9 @@
 ---
 name: crystallizer
 description: |
-  ブレインストーミングの収束を担当。
-  ideatorとセットで運用する。ideatorとcrystallizerのループは複数回行っても良い。
-  ideatorが広げた選択肢を整理・分類・評価し、
-  筋の良いものを残して構造化する。
-  アイデアを殺すのではなく、結晶化させる。
+  ブレインストーミングの収束担当。ideator とセットで運用、ループ複数回可。
+  発散した選択肢を整理・分類・評価し、筋の良いもの 2〜3 個を残して構造化する。
+  コードベースの現実と照らした距離感も返す。
 tools: Read, Glob, Grep, WebSearch, WebFetch
 model: sonnet
 effort: max

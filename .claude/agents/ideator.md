@@ -3,7 +3,6 @@ name: ideator
 description: |
   ブレインストーミングの発散担当。アナロジーで選択肢を広げる。本質抽出や一般化にも使える。
   プロジェクトを読めないので必要な情報は委譲時にすべて渡す。調査・判断には使わない。
-  並列起動推奨。出力は crystallizer で収束させる。
 tools: WebFetch
 model: opus
 effort: max

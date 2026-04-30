@@ -37,6 +37,19 @@ skills:
 - 成果物フォーマットを明記
 - 英語で委譲してもよい
 
+# AGENT選択
+
+| Agent | 担当 |
+|---|---|
+| architect | 設計判断 |
+| engineer | 実装・テスト作成（設計が要るなら先に architect） |
+| reviewer | レビュー（指摘のみ・修正なし。複数 researcher の統合も） |
+| researcher | 単独調査（並列起動可・統合は reviewer） |
+| tester | テスト実行（コマンドは委譲時に指定） |
+| customer | 非エンジニア顧客視点（URL とざっくり概要のみ渡す） |
+| ideator | ブレスト発散（並列推奨・プロジェクトは読めないので情報必須） |
+| crystallizer | ブレスト収束（ideator とセット） |
+
 # 報告フォーマット
 
 ````

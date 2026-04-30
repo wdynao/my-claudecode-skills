@@ -1,9 +1,9 @@
 ---
 name: architect
 description: |
-  設計・アーキテクチャの判断が必要なときに呼ぶ。
+  設計・アーキテクチャの判断担当。
   機能設計/構造設計/ディレクトリ構成/責務配置/リファクタリング方針/技術選定。
-  返ってくるのは設計提案のみ。実装が必要なら別途 engineer へ。
+  出力は設計提案のみ（コード・ファイル編集はしない）。
 tools: Read, Glob, Grep, WebSearch, WebFetch
 model: opus
 effort: xhigh

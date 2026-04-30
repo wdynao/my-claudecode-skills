@@ -3,8 +3,7 @@ name: reviewer
 description: |
   コード・設計・文書・テストのレビュー担当。
   品質・セキュリティ・可読性・パフォーマンスの観点で指摘する。
-  返ってくるのは指摘のみ（修正コード・修正方針は含まない）。修正は engineer/architect へ。
-  複数 researcher の結果統合にも使える。
+  出力は指摘のみ（修正コード・修正方針は含まない）。
 tools: Read, Glob, Grep
 model: sonnet
 effort: high

@@ -4,8 +4,7 @@ description: |
   技術調査・情報収集を担当する。
   ライブラリ比較、ドキュメント調査、技術選定の材料集め、
   プロジェクトの調査、市場調査、競合比較などを行う。
-  調査の対象/内容が複数の場合、複数のresearcherを起動し、reviewerに統合させるのが良い。
-  確実性の高い情報が必要な場合、3つのresearcherを起動し、信頼度をあげるのが良い。
+  出力は単独調査の結果のみ（統合・サマリは行わない）。
 tools: Read, Glob, Grep, WebSearch, WebFetch
 model: sonnet
 effort: high
